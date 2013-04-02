@@ -14,12 +14,12 @@ Requirements
 Install
 -------
 
-*   get the DFF source
+*   get the DFF source  
     http://wiki.digital-forensic.org/index.php/Installation
 *   install diStorm
 *   checkout disassemble into [dff-root-dir]/dff/modules/viewer/
 *   add `add_subdirectory (disassemble)` to [dff-root-dir]/dff/modules/viewer/CMakeLists.txt
-*   build DFF
+*   build DFF  
     http://wiki.digital-forensic.org/index.php/Installation
 
 
