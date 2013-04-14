@@ -19,20 +19,146 @@ from dff.api.module.module import Module
 from dff.api.module.script import Script
 from dff.api.types.libtypes import Argument, typeId
 
+from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar, QAbstractSlider, QHBoxLayout, QSplitter
+
 from distorm3 import Decode, Decode16Bits, Decode32Bits, Decode64Bits
 
-class Disassemble(Script):
+# this module is based on the textviewer module
+
+class TextEdit(QTextEdit):
+  def __init__(self, disassembly):
+    QTextEdit.__init__(self)
+    self.disassembly = disassembly
+    self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    self.setReadOnly(1)
+    self.setWordWrapMode(QTextOption.NoWrap)
+
+  def wheelEvent(self, event):
+    scroll = self.disassembly.scroll
+    v = scroll.value()
+    if event.delta() > 0:
+      trig = v - 5
+      if trig >= scroll.min:
+        self.disassembly.read(trig)
+        scroll.setValue(trig)
+    else:
+      trig = v + 5
+      if trig < scroll.max:
+        self.disassembly.read(trig)
+        scroll.setValue(trig)
+
+class Scroll(QScrollBar):
+    def __init__(self, parent):
+      QScrollBar.__init__(self, parent)
+      self.disassembly = parent
+      self.init()
+      self.initCallBacks()
+      self.setValues()
+
+    def init(self):
+      self.min = 0
+      self.single = 1
+      self.page = 32
+      self.max = self.disassembly.lines - 1
+
+    def initCallBacks(self):
+      self.connect(self, SIGNAL("sliderMoved(int)"), self.moved) 
+      self.connect(self, SIGNAL("actionTriggered(int)"), self.triggered) 
+
+    def setValues(self):
+      self.setMinimum(self.min)
+      self.setMaximum(self.max)
+      self.setSingleStep(self.single)
+      self.setPageStep(self.page)
+      self.setRange(self.min, self.max)
+
+    def triggered(self, action):
+      if action == QAbstractSlider.SliderSingleStepAdd:
+        trig = self.value() + 1
+        if trig <= self.max:
+          self.disassembly.read(trig)
+      elif action == QAbstractSlider.SliderSingleStepSub:
+        trig = self.value() - 1
+        if trig >= self.min:
+          self.disassembly.read(trig)
+      elif action == QAbstractSlider.SliderPageStepSub:
+        trig = self.value() - 5
+        if trig >= self.min:
+          self.disassembly.read(trig)
+      elif action == QAbstractSlider.SliderPageStepAdd:
+        trig = self.value() + 5
+        if trig <= self.max:
+          self.disassembly.read(trig)
+
+    def moved(self, value):
+      if value == self.max:
+        value -= 5
+      self.disassembly.read(value)
+
+class Disassemble(QSplitter, Script):
   def __init__(self):
     Script.__init__(self, "disassemble")
 
   def start(self, args):
     self.stateinfo = "started..."
-    node = args['file'].value()
-    vfile = node.open()
-    disassembly = Decode(0x0, vfile.read(), Decode32Bits) # TODO: determine correct decoder flag
-    for i in disassembly:
-      print "0x%08x (%02x) %-20s %s" % (i[0],  i[1],  i[3],  i[2])
+    try:
+      self.node = args['file'].value()
+    except:
+      pass
+
+  def g_display(self): 
+    QSplitter.__init__(self) 
+    self.offsets = self.linecount()
+    self.initShape() 
+    self.read(0) 
+ 
+  def initShape(self): 
+    self.hbox = QHBoxLayout() 
+    self.hbox.setContentsMargins(0, 0, 0, 0) 
+ 
+    textAreaWidget = QWidget() 
+ 
+    self.scroll = Scroll(self) 
+    self.text = TextEdit(self) 
+ 
+    self.hbox.addWidget(self.text) 
+    self.hbox.addWidget(self.scroll) 
+ 
+    textAreaWidget.setLayout(self.hbox) 
+ 
+    self.addWidget(textAreaWidget)  
+    self.setStretchFactor(0, 0)   
+    self.setStretchFactor(1, 1) 
+
+  def read(self, line):
+    lines = []
+    for i in self.getDisassembly()[line:line+200]: # TODO: get rid of the magic value!
+      lines.append("0x%08x (%02x) %-20s %s" % (i[0],  i[1],  i[3],  i[2]))
+    self.text.clear()
+    self.text.textCursor().insertText('\n'.join(lines))
+    self.text.moveCursor(QTextCursor.Start)
+
+  def getDisassembly(self):
+    if hasattr(self, "disassembly"):
+      return self.disassembly
+    vfile = self.node.open()
+    self.disassembly = Decode(0x0, vfile.read(), Decode32Bits) # TODO: determine correct decoder flag
     vfile.close()
+    return self.disassembly
+ 
+  def linecount(self):
+    offsets = [0]
+    disassembly = self.getDisassembly()
+    indices = [i for i, x in enumerate(disassembly)]
+    offsets.extend(indices)
+    self.lines = len(offsets)
+    return offsets
+
+  def updateWidget(self):
+    pass
+
+  def c_display(self):
     pass
 
 class disassemble(Module):
@@ -42,6 +168,6 @@ class disassemble(Module):
     self.conf.addArgument({"name": "file",
                            "description": "file to disassemble",
                            "input": Argument.Required|Argument.Single|typeId.Node})
-    self.flags = ["single"]
+    self.flags = ["gui"]
     self.tags = "Viewers"
 
