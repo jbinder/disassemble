@@ -20,7 +20,7 @@ from dff.api.module.script import Script
 from dff.api.types.libtypes import Argument, typeId
 
 from PyQt4.QtCore import Qt, SIGNAL
-from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar, QAbstractSlider, QHBoxLayout, QSplitter
+from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar, QAbstractSlider, QHBoxLayout, QSplitter, QFont
 
 from elfdisassembler import ElfDisassembler
 
@@ -33,6 +33,7 @@ class TextEdit(QTextEdit):
     self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     self.setReadOnly(1)
     self.setWordWrapMode(QTextOption.NoWrap)
+    self.setFont(QFont("Courier New"))
 
   def wheelEvent(self, event):
     scroll = self.disassembly.scroll
