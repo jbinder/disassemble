@@ -143,7 +143,7 @@ class Disassemble(QSplitter, Script):
     content = vfile.read()
     vfile.close()
     elfDisassembler = ElfDisassembler()
-    self.disassembly = elfDisassembler.disassemble(content).split('\n')
+    self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
     return self.disassembly
  
   def linecount(self):
