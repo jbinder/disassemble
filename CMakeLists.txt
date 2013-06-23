@@ -16,5 +16,6 @@
 install_file(
   __init__.py
   disassemble.py
+  elfdisassembler.py
 )
 

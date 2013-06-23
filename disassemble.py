@@ -22,9 +22,9 @@ from dff.api.types.libtypes import Argument, typeId
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar, QAbstractSlider, QHBoxLayout, QSplitter
 
-from distorm3 import Decode, Decode16Bits, Decode32Bits, Decode64Bits
+from elfdisassembler import ElfDisassembler
 
-# this module is based on the textviewer module
+# This module is based on the textviewer module. The custom scrollbar is used because of performance issues on large binaries.
 
 class TextEdit(QTextEdit):
   def __init__(self, disassembly):
@@ -132,19 +132,18 @@ class Disassemble(QSplitter, Script):
     self.setStretchFactor(1, 1) 
 
   def read(self, line):
-    lines = []
-    for i in self.getDisassembly()[line:line+200]: # TODO: get rid of the magic value!
-      lines.append("0x%08x (%02x) %-20s %s" % (i[0],  i[1],  i[3],  i[2]))
     self.text.clear()
-    self.text.textCursor().insertText('\n'.join(lines))
+    self.text.textCursor().insertText('\n'.join(self.getDisassembly()[line:line+200])) # TODO: get rid of the magic value!
     self.text.moveCursor(QTextCursor.Start)
 
   def getDisassembly(self):
     if hasattr(self, "disassembly"):
       return self.disassembly
     vfile = self.node.open()
-    self.disassembly = Decode(0x0, vfile.read(), Decode32Bits) # TODO: determine correct decoder flag
+    content = vfile.read()
     vfile.close()
+    elfDisassembler = ElfDisassembler()
+    self.disassembly = elfDisassembler.disassemble(content).split('\n')
     return self.disassembly
  
   def linecount(self):
