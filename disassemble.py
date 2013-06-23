@@ -144,7 +144,10 @@ class Disassemble(QSplitter, Script):
     content = vfile.read()
     vfile.close()
     elfDisassembler = ElfDisassembler()
-    self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
+    try:
+      self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
+    except:
+      self.disassembly = ["Unable to disassemble file"]
     return self.disassembly
  
   def linecount(self):
