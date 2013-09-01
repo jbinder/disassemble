@@ -146,8 +146,9 @@ class Disassemble(QSplitter, Script):
     elfDisassembler = ElfDisassembler()
     try:
       self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
-    except:
-      self.disassembly = ["Unable to disassemble file"]
+    except Exception as e:
+      self.stateinfo = e
+      self.disassembly = ["Unable to disassemble file: %s" % e] # TODO: do not show the disassembly window
     return self.disassembly
  
   def linecount(self):
