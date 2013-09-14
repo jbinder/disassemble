@@ -24,6 +24,11 @@ from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar
 
 from elfdisassembler import ElfDisassembler
 
+from miasm.arch.arm_arch import arm_mn
+from miasm.core.bin_stream import bin_stream
+from miasm.core import asmbloc
+
+
 # This module is based on the textviewer module. The custom scrollbar is used because of performance issues on large binaries.
 
 class TextEdit(QTextEdit):
@@ -148,8 +153,21 @@ class Disassemble(QSplitter, Script):
       self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
     except Exception as e:
       self.stateinfo = e
-      self.disassembly = ["Unable to disassemble file: %s" % e] # TODO: do not show the disassembly window
+      self.disassembly = ["Unable to disassemble file using the ELF disassembler: %s" % e] # TODO: do not show the disassembly window
+      self.disassembly.append("\nFallback, ARM disassembler:")
+      self.disassembly.append(self.disassembleArm(content))
     return self.disassembly
+
+  def disassembleArm(self, content):
+    my_mn = arm_mn
+    in_str = bin_stream(content)
+    job_done = set()
+    symbol_pool = asmbloc.asm_symbol_pool()
+    all_bloc = asmbloc.dis_bloc_all(my_mn, in_str, 0, job_done, symbol_pool, follow_call = False, lines_wd = 20)
+    lines = []
+    for bloc in all_bloc:
+      lines.append(str(bloc))
+    return ('\n'.join(lines))
  
   def linecount(self):
     offsets = [0]
