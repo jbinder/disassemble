@@ -153,21 +153,9 @@ class Disassemble(QSplitter, Script):
       self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
     except Exception as e:
       self.stateinfo = e
-      self.disassembly = ["Unable to disassemble file using the ELF disassembler: %s" % e] # TODO: do not show the disassembly window
-      self.disassembly.append("\nFallback, x86 raw disassembler:") # TODO: use generic disassembler
-      self.disassembly.append(self.disassembleRaw(content))
+      self.disassembly = ["Unable to disassemble file: %s" % e] # TODO: do not show the disassembly window
     return self.disassembly
 
-  def disassembleRaw(self, content):
-    in_str = bin_stream(content)
-    job_done = set()
-    symbol_pool = asmbloc.asm_symbol_pool()
-    all_bloc = asmbloc.dis_bloc_all(x86_mn, in_str, 0, job_done, symbol_pool, follow_call = False, lines_wd = 20)
-    lines = []
-    for bloc in all_bloc:
-      lines.append(str(bloc))
-    return ('\n'.join(lines))
- 
   def linecount(self):
     offsets = [0]
     disassembly = self.getDisassembly()

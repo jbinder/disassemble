@@ -41,6 +41,9 @@ class ElfDisassembler:
         elif data.startswith("\x7fELF"):
             print "disassembling ELF..."
             result = self.__disassembleElf(data)
+        else:
+            print "disassembling raw binary, fallback..."
+            result = self.__disassembleRaw(data)
         return result
 
     def __disassembleElf(self, data):
@@ -58,13 +61,18 @@ class ElfDisassembler:
         e = pe_init.PE(data)
         address = e.rva2virt(e.Opthdr.AddressOfEntryPoint)
         dll_dyn_funcs = get_import_address(e)
-        return header + (self.__disassembleMiasm(e, address, x86_mn, dll_dyn_funcs))
+        return header + (self.__disassembleMiasm(e.virt, address, x86_mn, dll_dyn_funcs))
+
+    def __disassembleRaw(self, data):
+        header = "Raw\n\n" # TODO: get binary info
+        address = 0
+        return header + (self.__disassembleMiasm(data, address, x86_mn, {}))
 
     def __disassembleArmElf(self, data):
         e = elf_init.ELF(data)
         address = e.Ehdr.entry
         dll_dyn_funcs = get_import_address_elf(e)
-        return (self.__disassembleMiasm(e, address, arm_mn, dll_dyn_funcs))
+        return (self.__disassembleMiasm(e.virt, address, arm_mn, dll_dyn_funcs))
 
     def __disassembleX32X64Elf(self, elf):
         result = []
@@ -94,8 +102,8 @@ class ElfDisassembler:
             lines.append("0x%08x (%02x) %-20s %s" % (rawLine[0],  rawLine[1],  rawLine[3],  rawLine[2]))
         return ('\n'.join(lines))
 
-    def __disassembleMiasm(self, e, address, mn, dll_dyn_funcs):
-        in_str = bin_stream(e.virt)
+    def __disassembleMiasm(self, data, address, mn, dll_dyn_funcs):
+        in_str = bin_stream(data)
         job_done = set()
         symbol_pool = asmbloc.asm_symbol_pool()
         for (n,f), ads in dll_dyn_funcs.items():
