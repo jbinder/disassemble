@@ -26,7 +26,7 @@ from miasm.core import asmbloc
 from StringIO import StringIO
 import os
 
-class ElfDisassembler:
+class Disassembler:
     """ Disassembles ELF files """
 
     elfClassNames = {0:'None', 1:'x32', 2:'x64'}

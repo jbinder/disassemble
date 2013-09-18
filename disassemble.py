@@ -22,7 +22,7 @@ from dff.api.types.libtypes import Argument, typeId
 from PyQt4.QtCore import Qt, SIGNAL
 from PyQt4.QtGui import QWidget, QTextCursor, QTextEdit, QTextOption, QScrollBar, QAbstractSlider, QHBoxLayout, QSplitter, QFont
 
-from elfdisassembler import ElfDisassembler
+from disassembler import Disassembler
 
 from miasm.arch.ia32_arch import x86_mn
 from miasm.core.bin_stream import bin_stream
@@ -148,9 +148,9 @@ class Disassemble(QSplitter, Script):
     vfile = self.node.open()
     content = vfile.read()
     vfile.close()
-    elfDisassembler = ElfDisassembler()
+    disassembler = Disassembler()
     try:
-      self.disassembly = ("%s - " % (self.node.name()) + elfDisassembler.disassemble(content)).split('\n')
+      self.disassembly = ("%s - " % (self.node.name()) + disassembler.disassemble(content)).split('\n')
     except Exception as e:
       self.stateinfo = e
       self.disassembly = ["Unable to disassemble file: %s" % e] # TODO: do not show the disassembly window
