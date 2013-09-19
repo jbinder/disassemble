@@ -27,7 +27,7 @@ from StringIO import StringIO
 import os
 
 class Disassembler:
-    """ Disassembles ELF files """
+    """ Disassembles binary files """
 
     elfClassNames = {0:'None', 1:'x32', 2:'x64'}
     elfClassEnum = {0:Decode32Bits, 1:Decode32Bits, 2:Decode64Bits}
@@ -57,11 +57,20 @@ class Disassembler:
         return result
 
     def __disassemblePE(self, data):
-        header = "PE\n\n" # TODO: get binary info
         e = pe_init.PE(data)
+        header = self.__getPeInfo(e)
         address = e.rva2virt(e.Opthdr.AddressOfEntryPoint)
         dll_dyn_funcs = get_import_address(e)
         return header + (self.__disassembleMiasm(e.virt, address, x86_mn, dll_dyn_funcs))
+
+    def __getPeInfo(self, e):
+        if isinstance(e.Opthdr, pe.Opthdr32):
+            arch = "x32"
+        elif isinstance(e.Opthdr, pe.Opthdr64):
+            arch = "x64"
+        else:
+            arch = "unknown"
+        return "PE format: %s\n\n" % (arch)
 
     def __disassembleRaw(self, data):
         header = "Raw\n\n" # TODO: get binary info
