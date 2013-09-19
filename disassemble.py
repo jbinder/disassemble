@@ -177,6 +177,10 @@ class disassemble(Module):
     self.conf.addArgument({"name": "file",
                            "description": "file to disassemble",
                            "input": Argument.Required|Argument.Single|typeId.Node})
+    self.conf.addConstant({"name": "mime-type",
+                           "type": typeId.String,
+                           "description": "managed mime type",
+                           "values": ["x-sharedlib", "x-executable"]})
     self.flags = ["gui"]
     self.tags = "Viewers"
 
