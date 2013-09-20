@@ -2,8 +2,7 @@ disassemble
 ===========
 
 Module for the Digital Forensics Framework which adds basic disassemble capabilities.
-At the moment x86 and AMD64 ELF binaries are supported.
-ARM disassembling is tried only if the above fails.
+diStorm is used for x86 and AMD64 ELF binaries, Miasm for ARM ELF binaries and x86 PE binaries.
 
 
 Requirements
@@ -28,5 +27,5 @@ Install
 History
 -------
 
-tbd
+v1.0.0 initial release for DFF 1.3.0
 
