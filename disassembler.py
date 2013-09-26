@@ -16,7 +16,6 @@
 from distorm3 import Decode, Decode16Bits, Decode32Bits, Decode64Bits
 from bintools.elf import ELF
 from bintools.elf import MACHINE
-import darm
 from elfesteem import *
 from miasm.tools.pe_helper import *
 from miasm.arch.arm_arch import arm_mn
